@@ -6,6 +6,6 @@
 # Formato: PESO|AÑO-MES|VALOR
 
 # EJERCICIOS
-# Los ejercicios se agregarán automáticamente
+2025-05-23|2,33 KM Trote|21
 
-# CREADO: 27/5/2025, 1:42:22
+# ÚLTIMA ACTUALIZACIÓN: 27/5/2025, 1:46:05
