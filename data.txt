@@ -1,0 +1,11 @@
+# BASE DE DATOS DE ENTRENAMIENTO - AUTO-SAVE
+# Este archivo se actualiza automáticamente
+# Formato: FECHA|EJERCICIO|TIEMPO
+
+# PESOS MENSUALES
+# Formato: PESO|AÑO-MES|VALOR
+
+# EJERCICIOS
+# Los ejercicios se agregarán automáticamente
+
+# CREADO: 27/5/2025, 1:42:22
