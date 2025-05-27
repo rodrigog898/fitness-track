@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Entrenamiento - Auto-Save GitHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 25px 40px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-header {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-header:hover {
+            background: #2980b9;
+        }
+
+        .btn-header.success {
+            background: #27ae60;
+        }
+
+        .btn-header.success:hover {
+            background: #229954;
+        }
+
+        .btn-header.warning {
+            background: #f39c12;
+        }
+
+        .btn-header.warning:hover {
+            background: #e67e22;
+        }
+
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-loaded {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .status-loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-saving {
+            background: #cce5ff;
+            color: #0066cc;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-setup {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            min-height: calc(100vh - 100px);
+        }
+
+        .calendar-container {
+            padding: 40px;
+            background: white;
+        }
+
+        .sidebar {
+            background: #ecf0f1;
+            padding: 30px;
+            border-left: 1px solid #bdc3c7;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .setup-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px;
+        }
+
+        .setup-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .setup-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .setup-text {
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 500px;
+            margin-bottom: 30px;
+        }
+
+        .setup-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .nav-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #2c3e50;
+        }
+
+        .month-year {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #bdc3c7;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .day-header {
+            background: #34495e;
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .calendar-day {
+            background: white;
+            min-height: 100px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .calendar-day:hover {
+            background: #f8f9fa;
+            border-color: #3498db;
+        }
+
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #95a5a6;
+        }
+
+        .calendar-day.today {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            font-weight: bold;
+        }
+
+        .calendar-day.has-data {
+            background: #e8f5e8;
+            border-left: 4px solid #27ae60;
+        }
+
+        .day-number {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .day-summary {
+            font-size: 11px;
+            color: #7f8c8d;
+            line-height: 1.3;
+        }
+
+        .exercise-indicator {
+            width: 8px;
+            height: 8px;
+            background: #27ae60;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 1px;
+        }
+
+        .sidebar-section {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .weight-display {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .weight-value {
+            font-size: 36px;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .weight-label {
+            font-size: 14px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .auto-save-status {
+            background: #e8f5e8;
+            border: 1px solid #27ae60;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auto-save-status.saving {
+            background: #cce5ff;
+            border-color: #0066cc;
+        }
+
+        .auto-save-status.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .auto-save-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .auto-save-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .auto-save-time {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .github-info {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .github-info h4 {
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+
+        .github-info p {
+            color: #0c5460;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .github-info code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(44, 62, 80, 0.8);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 3% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: #34495e;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .exercise-list {
+            margin-top: 25px;
+        }
+
+        .exercise-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .exercise-time {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-left: none;
+                border-top: 1px solid #bdc3c7;
+            }
+
+            .calendar-container {
+                padding: 20px;
+            }
+
+            .sidebar {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .calendar-day {
+                min-height: 80px;
+                padding: 8px;
+            }
+
+            .day-number {
+                font-size: 14px;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <h1>🚀 Registro Auto-Save GitHub</h1>
+                    <div class="header-subtitle">Guardado automático en tu repositorio</div>
+                </div>
+                <div class="header-actions">
+                    <div class="status-indicator" id="statusIndicator">Configurando...</div>
+                    <button class="btn-header warning" id="setupBtn" onclick="showSetup()">⚙️ Configurar</button>
+                    <button class="btn-header" onclick="reloadDatabase()" style="display: none;" id="reloadBtn">🔄 Recargar</button>
+                    <button class="btn-header success" onclick="downloadDatabase()" style="display: none;" id="downloadBtn">💾 Backup</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <div class="calendar-container">
+                <div id="setupScreen" class="setup-screen">
+                    <div class="setup-icon">🔧</div>
+                    <div class="setup-title">Configuración Inicial</div>
+                    <div class="setup-text">
+                        Para habilitar el guardado automático, necesitas configurar tu repositorio de GitHub.
+                        Solo se hace una vez y después todo se guarda automáticamente.
+                    </div>
+                    
+                    <div class="setup-form">
+                        <div class="form-group">
+                            <label class="form-label">Usuario de GitHub:</label>
+                            <input type="text" class="form-input" id="githubUser" placeholder="tu-usuario">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Nombre del Repositorio:</label>
+                            <input type="text" class="form-input" id="githubRepo" placeholder="mi-entrenamiento">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Personal Access Token:</label>
+                            <input type="password" class="form-input" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
+                            <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                                <a href="https://github.com/settings/tokens" target="_blank">Crear token aquí</a> con permisos de "repo"
+                            </small>
+                        </div>
+                        
+                        <button class="btn-primary" onclick="saveGitHubConfig()">💾 Guardar Configuración</button>
+                    </div>
+                </div>
+
+                <div id="calendarView" style="display: none;">
+                    <div class="calendar-header">
+                        <button class="nav-btn" onclick="changeMonth(-1)">‹ Anterior</button>
+                        <div class="month-year" id="monthYear"></div>
+                        <button class="nav-btn" onclick="changeMonth(1)">Siguiente ›</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Estado Auto-Save</h3>
+                    <div class="auto-save-status" id="autoSaveStatus">
+                        <div class="auto-save-icon">⚙️</div>
+                        <div class="auto-save-text">Configuración requerida</div>
+                        <div class="auto-save-time">Haz clic en "Configurar" arriba</div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section" style="display: none;" id="weightSection">
+                    <h3 class="sidebar-title">Peso Mensual</h3>
+                    <div class="weight-display">
+                        <div class="weight-value" id="currentWeight">--</div>
+                        <div class="weight-label">Kilogramos</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Registrar peso:</label>
+                        <input type="number" class="form-input" id="weightInput" step="0.1" placeholder="70.5">
+                    </div>
+                    <button class="btn-primary" onclick="saveWeight()">Guardar Peso</button>
+                </div>
+
+                <div class="sidebar-section" style="display: none;" id="infoSection">
+                    <h3 class="sidebar-title">Información</h3>
+                    <div class="github-info">
+                        <h4>📁 Repositorio:</h4>
+                        <p id="repoInfo">No configurado</p>
+                    </div>
+                    <div class="github-info">
+                        <h4>💾 Último guardado:</h4>
+                        <p id="lastSaveInfo">Nunca</p>
+                    </div>
+                    <button class="btn-secondary" onclick="showSetup()">⚙️ Reconfigurar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ejercicios -->
+    <div id="exerciseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Ejercicios del día</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="exerciseForm">
+                    <div class="form-group">
+                        <label class="form-label">Ejercicio:</label>
+                        <input type="text" class="form-input" id="exerciseName" placeholder="Ej: Correr, Flexiones, Pesas..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tiempo (minutos):</label>
+                        <input type="number" class="form-input" id="exerciseTime" placeholder="30" min="1" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Agregar Ejercicio</button>
+                </form>
+
+                <div class="exercise-list" id="exerciseList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de instrucciones -->
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📚 Instrucciones de Configuración</h3>
+                <button class="modal-close" onclick="closeInstructionsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="github-info">
+                    <h4>🔑 Crear Personal Access Token:</h4>
+                    <p>1. Ve a <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Tokens</a></p>
+                    <p>2. Clic en "Generate new token (classic)"</p>
+                    <p>3. Selecciona el scope <code>repo</code> (acceso completo a repositorios)</p>
+                    <p>4. Copia el token generado</p>
+                </div>
+
+                <div class="github-info">
+                    <h4>📁 Configurar Repositorio:</h4>
+                    <p>1. Crea un repositorio en GitHub (puede ser privado)</p>
+                    <p>2. Sube este archivo index.html</p>
+                    <p>3. Activa GitHub Pages si quieres acceso web</p>
+                    <p>4. Usa el nombre exacto del repositorio en la configuración</p>
+                </div>
+
+                <div class="github-info">
+                    <h4>🚀 ¡Listo!</h4>
+                    <p>Una vez configurado, todos los cambios se guardarán automáticamente en tu repositorio.</p>
+                    <p>No necesitas hacer nada más, solo usar la aplicación normalmente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDate = null;
+        let exercises = {};
+        let weights = {};
+        let isDatabaseLoaded = false;
+        let isConfigured = false;
+        let githubConfig = {};
+        let saveTimeout = null;
+
+        const monthNames = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+        // Inicializar aplicación
+        window.addEventListener('load', function() {
+            loadGitHubConfig();
+        });
+
+        // Cargar configuración de GitHub
+        function loadGitHubConfig() {
+            const config = localStorage.getItem('githubConfig');
+            if (config) {
+                githubConfig = JSON.parse(config);
+                isConfigured = true;
+                showCalendarInterface();
+                loadDatabaseFromGitHub();
+            } else {
+                showSetupInterface();
+            }
+        }
+
+        // Guardar configuración de GitHub
+        function saveGitHubConfig() {
+            const user = document.getElementById('githubUser').value.trim();
+            const repo = document.getElementById('githubRepo').value.trim();
+            const token = document.getElementById('githubToken').value.trim();
+
+            if (!user || !repo || !token) {
+                alert('Por favor completa todos los campos');
+                return;
+            }
+
+            githubConfig = { user, repo, token };
+            localStorage.setItem('githubConfig', JSON.stringify(githubConfig));
+            isConfigured = true;
+
+            showCalendarInterface();
+            loadDatabaseFromGitHub();
+        }
+
+        // Mostrar interfaz de configuración
+        function showSetupInterface() {
+            document.getElementById('setupScreen').style.display = 'flex';
+            document.getElementById('calendarView').style.display = 'none';
+            document.getElementById('weightSection').style.display = 'none';
+            document.getElementById('infoSection').style.display = 'none';
+            updateStatus('setup');
+        }
+
+        // Mostrar interfaz del calendario
+        function showCalendarInterface() {
+            document.getElementById('setupScreen').style.display = 'none';
+            document.getElementById('calendarView').style.display = 'block';
+            document.getElementById('weightSection').style.display = 'block';
+            document.getElementById('infoSection').style.display = 'block';
+            
+            document.getElementById('setupBtn').style.display = 'none';
+            document.getElementById('reloadBtn').style.display = 'inline-block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+
+            updateRepoInfo();
+        }
+
+        // Mostrar configuración
+        function showSetup() {
+            if (isConfigured) {
+                document.getElementById('githubUser').value = githubConfig.user;
+                document.getElementById('githubRepo').value = githubConfig.repo;
+                document.getElementById('githubToken').value = githubConfig.token;
+            }
+            showSetupInterface();
+        }
+
+        // Cargar base de datos desde GitHub
+        async function loadDatabaseFromGitHub() {
+            if (!isConfigured) return;
+
+            updateStatus('loading');
+            updateAutoSaveStatus('loading', 'Cargando desde GitHub...', '');
+
+            try {
+                const url = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/data.txt`;
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = atob(data.content);
+                    parseDatabase(content);
+                    generateCalendar();
+                    updateStatus('loaded');
+                    updateAutoSaveStatus('success', 'Sincronizado con GitHub', new Date().toLocaleString('es-ES'));
+                } else if (response.status === 404) {
+                    // Archivo no existe, crear uno nuevo
+                    await createInitialDatabase();
+                } else {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error cargando desde GitHub:', error);
+                updateStatus('error');
+                updateAutoSaveStatus('error', 'Error de conexión', 'Verifica tu configuración');
+                createDefaultDatabase();
+            }
+        }
+
+        // Crear base de datos inicial en GitHub
+        async function createInitialDatabase() {
+            const initialContent = `# BASE DE DATOS DE ENTRENAMIENTO - AUTO-SAVE
+# Este archivo se actualiza automáticamente
+# Formato: FECHA|EJERCICIO|TIEMPO
+
+# PESOS MENSUALES
+# Formato: PESO|AÑO-MES|VALOR
+
+# EJERCICIOS
+# Los ejercicios se agregarán automáticamente
+
+# CREADO: ${new Date().toLocaleString('es-ES')}
+`;
+
+            await saveToGitHub(initialContent, 'Crear base de datos inicial');
+            parseDatabase(initialContent);
+            generateCalendar();
+            updateStatus('loaded');
+            updateAutoSaveStatus('success', 'Base de datos creada', new Date().toLocaleString('es-ES'));
+        }
+
+        // Guardar en GitHub
+        async function saveToGitHub(content, commitMessage = 'Actualizar datos de entrenamiento') {
+            if (!isConfigured) return false;
+
+            try {
+                updateAutoSaveStatus('saving', 'Guardando en GitHub...', '');
+
+                // Primero obtener el SHA actual del archivo (si existe)
+                const getUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/data.txt`;
+                let sha = null;
+
+                try {
+                    const getResponse = await fetch(getUrl, {
+                        headers: {
+                            'Authorization': `token ${githubConfig.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+
+                    if (getResponse.ok) {
+                        const getData = await getResponse.json();
+                        sha = getData.sha;
+                    }
+                } catch (e) {
+                    // Archivo no existe, está bien
+                }
+
+                // Crear o actualizar el archivo
+                const putUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/data.txt`;
+                const putData = {
+                    message: commitMessage,
+                    content: btoa(unescape(encodeURIComponent(content))),
+                    branch: 'main'
+                };
+
+                if (sha) {
+                    putData.sha = sha;
+                }
+
+                const putResponse = await fetch(putUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(putData)
+                });
+
+                if (putResponse.ok) {
+                    const saveTime = new Date().toLocaleString('es-ES');
+                    updateAutoSaveStatus('success', 'Guardado automáticamente', saveTime);
+                    updateLastSaveInfo(saveTime);
+                    return true;
+                } else {
+                    throw new Error(`Error ${putResponse.status}: ${putResponse.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error guardando en GitHub:', error);
+                updateAutoSaveStatus('error', 'Error al guardar', 'Verifica tu conexión');
+                return false;
+            }
+        }
+
+        // Auto-guardar con debounce
+        function autoSave() {
+            if (!isConfigured) return;
+
+            // Cancelar guardado anterior si existe
+            if (saveTimeout) {
+                clearTimeout(saveTimeout);
+            }
+
+            // Programar guardado en 2 segundos
+            saveTimeout = setTimeout(async () => {
+                const content = generateDatabaseContent();
+                await saveToGitHub(content);
+            }, 2000);
+        }
+
+        // Parsear contenido de la base de datos
+        function parseDatabase(content) {
+            exercises = {};
+            weights = {};
+            
+            const lines = content.split('\n');
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (line.startsWith('#') || line === '') continue;
+                
+                const parts = line.split('|');
+                
+                if (parts.length === 3) {
+                    if (parts[0] === 'PESO') {
+                        weights[parts[1]] = parseFloat(parts[2]);
+                    } else {
+                        const [date, exercise, time] = parts;
+                        if (!exercises[date]) {
+                            exercises[date] = [];
+                        }
+                        exercises[date].push({
+                            name: exercise,
+                            time: parseInt(time)
+                        });
+                    }
+                }
+            }
+            
+            isDatabaseLoaded = true;
+        }
+
+        // Generar contenido de la base de datos
+        function generateDatabaseContent() {
+            let content = `# BASE DE DATOS DE ENTRENAMIENTO - AUTO-SAVE
+# Este archivo se actualiza automáticamente
+# Formato: FECHA|EJERCICIO|TIEMPO
+
+# PESOS MENSUALES
+# Formato: PESO|AÑO-MES|VALOR
+`;
+
+            // Agregar pesos
+            Object.keys(weights).sort().forEach(monthKey => {
+                content += `PESO|${monthKey}|${weights[monthKey]}\n`;
+            });
+
+            content += '\n# EJERCICIOS\n';
+
+            // Agregar ejercicios
+            Object.keys(exercises).sort().forEach(dateKey => {
+                exercises[dateKey].forEach(exercise => {
+                    content += `${dateKey}|${exercise.name}|${exercise.time}\n`;
+                });
+            });
+
+            content += `\n# ÚLTIMA ACTUALIZACIÓN: ${new Date().toLocaleString('es-ES')}\n`;
+
+            return content;
+        }
+
+        // Crear base de datos por defecto
+        function createDefaultDatabase() {
+            exercises = {};
+            weights = {};
+            isDatabaseLoaded = true;
+            generateCalendar();
+        }
+
+        // Recargar base de datos
+        function reloadDatabase() {
+            loadDatabaseFromGitHub();
+        }
+
+        // Actualizar estado
+        function updateStatus(status) {
+            const indicator = document.getElementById('statusIndicator');
+            if (status === 'loaded') {
+                indicator.textContent = 'Conectado ✓';
+                indicator.className = 'status-indicator status-loaded';
+            } else if (status === 'loading') {
+                indicator.textContent = 'Cargando...';
+                indicator.className = 'status-indicator status-loading';
+            } else if (status === 'saving') {
+                indicator.textContent = 'Guardando...';
+                indicator.className = 'status-indicator status-saving';
+            } else if (status === 'setup') {
+                indicator.textContent = 'Configurar';
+                indicator.className = 'status-indicator status-setup';
+            } else {
+                indicator.textContent = 'Error';
+                indicator.className = 'status-indicator status-error';
+            }
+        }
+
+        // Actualizar estado de auto-save
+        function updateAutoSaveStatus(type, text, time) {
+            const status = document.getElementById('autoSaveStatus');
+            const icon = status.querySelector('.auto-save-icon');
+            const textEl = status.querySelector('.auto-save-text');
+            const timeEl = status.querySelector('.auto-save-time');
+
+            if (type === 'success') {
+                status.className = 'auto-save-status';
+                icon.textContent = '✅';
+            } else if (type === 'saving') {
+                status.className = 'auto-save-status saving';
+                icon.textContent = '💾';
+            } else if (type === 'loading') {
+                status.className = 'auto-save-status saving';
+                icon.textContent = '⏳';
+            } else if (type === 'error') {
+                status.className = 'auto-save-status error';
+                icon.textContent = '❌';
+            }
+
+            textEl.textContent = text;
+            timeEl.textContent = time;
+        }
+
+        // Actualizar información del repositorio
+        function updateRepoInfo() {
+            if (isConfigured) {
+                document.getElementById('repoInfo').textContent = `${githubConfig.user}/${githubConfig.repo}`;
+            }
+        }
+
+        // Actualizar información del último guardado
+        function updateLastSaveInfo(time) {
+            document.getElementById('lastSaveInfo').textContent = time;
+        }
+
+        // Generar calendario
+        function generateCalendar() {
+            if (!isDatabaseLoaded) return;
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+            updateMonthWeight();
+
+            const firstDay = new Date(year, month, 1);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Headers
+            dayNames.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            // Days
+            const today = new Date();
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                if (date.getMonth() !== month) {
+                    dayElement.classList.add('other-month');
+                }
+                
+                if (date.toDateString() === today.toDateString()) {
+                    dayElement.classList.add('today');
+                }
+
+                const dateKey = formatDate(date);
+                const dayExercises = exercises[dateKey] || [];
+                
+                if (dayExercises.length > 0) {
+                    dayElement.classList.add('has-data');
+                }
+
+                const totalTime = dayExercises.reduce((sum, ex) => sum + ex.time, 0);
+                
+                dayElement.innerHTML = `
+                    <div class="day-number">${date.getDate()}</div>
+                    <div class="day-summary">
+                        ${dayExercises.length > 0 ? `${dayExercises.length} ejercicio${dayExercises.length > 1 ? 's' : ''}` : ''}
+                        ${totalTime > 0 ? `<br>${totalTime} min` : ''}
+                        <div>
+                            ${dayExercises.map(() => '<span class="exercise-indicator"></span>').join('')}
+                        </div>
+                    </div>
+                `;
+
+                dayElement.onclick = () => openDayModal(date);
+                grid.appendChild(dayElement);
+            }
+        }
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            generateCalendar();
+        }
+
+        function openDayModal(date) {
+            selectedDate = date;
+            const dateKey = formatDate(date);
+            
+            document.getElementById('modalTitle').textContent = 
+                `Ejercicios del ${date.getDate()} de ${monthNames[date.getMonth()]}`;
+            
+            document.getElementById('exerciseModal').style.display = 'block';
+            displayDayExercises(dateKey);
+        }
+
+        function closeModal() {
+            document.getElementById('exerciseModal').style.display = 'none';
+            document.getElementById('exerciseForm').reset();
+        }
+
+        function displayDayExercises(dateKey) {
+            const container = document.getElementById('exerciseList');
+            const dayExercises = exercises[dateKey] || [];
+
+            if (dayExercises.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #7f8c8d; margin-top: 20px; font-style: italic;">No hay ejercicios registrados para este día</p>';
+                return;
+            }
+
+            container.innerHTML = dayExercises.map((exercise, index) => `
+                <div class="exercise-item">
+                    <div class="exercise-info">
+                        <div class="exercise-name">${exercise.name}</div>
+                        <div class="exercise-time">${exercise.time} minutos</div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteExercise('${dateKey}', ${index})">Eliminar</button>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('exerciseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const dateKey = formatDate(selectedDate);
+            const exercise = {
+                name: document.getElementById('exerciseName').value,
+                time: parseInt(document.getElementById('exerciseTime').value)
+            };
+
+            if (!exercises[dateKey]) {
+                exercises[dateKey] = [];
+            }
+
+            exercises[dateKey].push(exercise);
+            autoSave(); // Guardar automáticamente
+
+            this.reset();
+            displayDayExercises(dateKey);
+            generateCalendar();
+        });
+
+        function deleteExercise(dateKey, index) {
+            if (confirm('¿Está seguro de eliminar este ejercicio?')) {
+                exercises[dateKey].splice(index, 1);
+                if (exercises[dateKey].length === 0) {
+                    delete exercises[dateKey];
+                }
+                autoSave(); // Guardar automáticamente
+                displayDayExercises(dateKey);
+                generateCalendar();
+            }
+        }
+
+        function saveWeight() {
+            const weight = parseFloat(document.getElementById('weightInput').value);
+            if (!weight || weight <= 0) {
+                alert('Por favor ingrese un peso válido');
+                return;
+            }
+
+            const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+            weights[monthKey] = weight;
+            autoSave(); // Guardar automáticamente
+
+            document.getElementById('weightInput').value = '';
+            updateMonthWeight();
+        }
+
+        function updateMonthWeight() {
+            const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+            const weight = weights[monthKey];
+            
+            document.getElementById('currentWeight').textContent = weight ? weight.toFixed(1) : '--';
+        }
+
+        function downloadDatabase() {
+            if (!isDatabaseLoaded) {
+                alert('No hay base de datos cargada');
+                return;
+            }
+
+            const content = generateDatabaseContent();
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function showInstructions() {
+            document.getElementById('instructionsModal').style.display = 'block';
+        }
+
+        function closeInstructionsModal() {
+            document.getElementById('instructionsModal').style.display = 'none';
+        }
+
+        // Cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            const exerciseModal = document.getElementById('exerciseModal');
+            const instructionsModal = document.getElementById('instructionsModal');
+            if (event.target === exerciseModal) {
+                closeModal();
+            }
+            if (event.target === instructionsModal) {
+                closeInstructionsModal();
+            }
+        }
+    </script>
+</body>
+</html>
